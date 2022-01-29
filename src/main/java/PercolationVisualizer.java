@@ -67,21 +67,16 @@ public class PercolationVisualizer {
         In in = new In(args[0]);      // input file
         int n = in.readInt();         // n-by-n percolation system
 
-        // turn on animation mode
-//        StdDraw.enableDoubleBuffering();
-
         // repeatedly read in sites to open and draw resulting system
         Percolation perc = new Percolation(n);
         draw(perc, n);
         StdDraw.show(DELAY);
-//        StdDraw.pause(DELAY);
         while (!in.isEmpty()) {
             int i = in.readInt();
             int j = in.readInt();
             perc.open(i, j);
             draw(perc, n);
             StdDraw.show(DELAY);
-//            StdDraw.pause(DELAY);
         }
     }
 }

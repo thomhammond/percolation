@@ -26,7 +26,6 @@ public class InteractivePercolationVisualizer {
         // repeatedly open site specified my mouse click and draw resulting system
         StdOut.println(n);
 
-//        StdDraw.enableDoubleBuffering();
         Percolation perc = new Percolation(n);
         PercolationVisualizer.draw(perc, n);
         StdDraw.show();
@@ -56,8 +55,6 @@ public class InteractivePercolationVisualizer {
                 PercolationVisualizer.draw(perc, n);
                 StdDraw.show(20);
             }
-
-//            StdDraw.pause(20);
         }
     }
 }
