@@ -10,7 +10,8 @@ public class Percolation {
     private int numOpenSites;
 
     private int virtualTopSite;
-    private int virtualBottomSite;
+
+    private boolean percolates;
 
     public Percolation(int n) {
         if (n <= 0) {
@@ -29,11 +30,11 @@ public class Percolation {
         this.numOpenSites = 0;
 
         this.virtualTopSite = 0;
-        this.virtualBottomSite = gridSize + 1;
+
+        this.percolates = false;
     }
 
     public void open(int row, int col) {
-        // Will throw exception if row and col do not convert to a valid index
         int index = xyTo1D(row, col);
 
         openSites[index] = true;
@@ -44,9 +45,12 @@ public class Percolation {
             weightedQuickUnionUF.union(virtualTopSite, index);
         }
 
-        // If bottom row, connect to virtual bottom site
-        if (row == gridScale) {
-            weightedQuickUnionUF.union(virtualBottomSite, index);
+        // If bottom row, connect to open neighbor in row above and set percolates if site is full
+        if (row == gridScale && isOpen(row - 1, col)) {
+            weightedQuickUnionUF.union(index, xyTo1D(row - 1, col));
+            if (isFull(row, col)) {
+                percolates = true;
+            }
         }
 
         // Connect site to open neighbors
@@ -65,14 +69,12 @@ public class Percolation {
     }
 
     public boolean isOpen(int row, int col) {
-        // Will throw exception if row and col do not convert to a valid index
         int index = xyTo1D(row, col);
 
         return openSites[index];
     }
 
     public boolean isFull(int row, int col) {
-        // Will throw exception if row and col do not convert to a valid index
         int index = xyTo1D(row, col);
 
         boolean isOpen = isOpen(row, col);
@@ -86,7 +88,7 @@ public class Percolation {
     }
 
     public boolean percolates() {
-        return weightedQuickUnionUF.find(virtualTopSite) == weightedQuickUnionUF.find(virtualBottomSite);
+        return this.percolates;
     }
 
     private int xyTo1D(int row, int col) throws IndexOutOfBoundsException {
@@ -106,9 +108,7 @@ public class Percolation {
         percolation.open(2,3);
         percolation.open(3,3);
 
-        percolation.isFull(3, 1);
-        percolation.open(3, 1);
-        percolation.isFull(3, 1);
+        percolation.percolates();
 
     }
 
