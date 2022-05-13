@@ -57,6 +57,9 @@ public class PercolationVisualizer {
         // write status text
         StdDraw.setFont(new Font("SansSerif", Font.PLAIN, 12));
         StdDraw.setPenColor(StdDraw.BLACK);
+        if (opened == 55) {
+            System.out.println("55");
+        }
         StdDraw.text(0.25 * n, -0.025 * n, opened + " open sites");
         if (perc.percolates()) StdDraw.text(0.75 * n, -0.025 * n, "percolates");
         else StdDraw.text(0.75 * n, -0.025 * n, "does not percolate");

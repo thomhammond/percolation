@@ -1,115 +1,123 @@
 import edu.princeton.cs.algorithms.WeightedQuickUnionUF;
 
 public class Percolation {
-    private int gridScale;
-    private int gridSize;
+   private int scale;
+   private int size;
 
-    private WeightedQuickUnionUF weightedQuickUnionUF;
+   private WeightedQuickUnionUF wquuf;
+   private byte[] status;
 
-    private boolean[] openSites;
-    private int numOpenSites;
+   private int numberOfOpenSites;
+   private boolean percolates;
 
-    private int virtualTopSite;
-
-    private boolean percolates;
 
     public Percolation(int n) {
         if (n <= 0) {
             throw new IllegalArgumentException("N must be greater than 0");
         }
 
-        this.gridScale = n;
-        this.gridSize = n * n;
+        scale = n;
+        size = scale * scale;
 
-        // Initialize with size = gridSize + 2 to account for virtual sites
-        this.weightedQuickUnionUF = new WeightedQuickUnionUF(gridSize + 2);
+        wquuf = new WeightedQuickUnionUF(size);
+        status = new byte[size];
 
-        // Initialize with size = gridSize + 2 to make indexing easier
-        this.openSites = new boolean[gridSize + 2];
+        for (int i = 0; i < size; i++) {
+            if (i < scale) status[i] = 2;
+            else if (i >= size - scale) status[i] = 1;
+            else status[i] = 0;
+        }
 
-        this.numOpenSites = 0;
-
-        this.virtualTopSite = 0;
-
-        this.percolates = false;
+        numberOfOpenSites = 0;
+        percolates = false;
     }
 
     public void open(int row, int col) {
-        int index = xyTo1D(row, col);
+        int index = xyToIndex(row, col);
 
-        openSites[index] = true;
-        numOpenSites++;
+        // Set site status to open
+        status[index] = (byte) (4 | status[index]);
+        numberOfOpenSites++;
 
-        // If top row, connect to virtual top site
-        if (row == 1) {
-            weightedQuickUnionUF.union(virtualTopSite, index);
-        }
+        byte currentStatus = status[index];
 
-        // If bottom row, connect to open neighbor in row above and set percolates if site is full
-        if (row == gridScale && isOpen(row - 1, col)) {
-            weightedQuickUnionUF.union(index, xyTo1D(row - 1, col));
-            if (isFull(row, col)) {
-                percolates = true;
-            }
-        }
-
-        // Connect site to open neighbors
+        // Update neighbors
         if (row > 1 && isOpen(row - 1, col)) {
-            weightedQuickUnionUF.union(index, xyTo1D(row - 1, col));
+            int neighbor = xyToIndex(row - 1, col);
+
+            currentStatus = updateStatus(neighbor, currentStatus);
+
+            wquuf.union(index, neighbor);
         }
-        if (row < gridScale && isOpen(row + 1, col)) {
-            weightedQuickUnionUF.union(index, xyTo1D(row + 1, col));
+        if (row < scale && isOpen(row + 1, col)) {
+            int neighbor = xyToIndex(row + 1, col);
+
+            currentStatus = updateStatus(neighbor, currentStatus);
+
+            wquuf.union(index, neighbor);
         }
         if (col > 1 && isOpen(row, col - 1)) {
-            weightedQuickUnionUF.union(index, index - 1);
+            int neighbor = xyToIndex(row, col - 1);
+
+            currentStatus = updateStatus(neighbor, currentStatus);
+
+            wquuf.union(index, neighbor);
         }
-        if (col < gridScale && isOpen(row, col + 1)) {
-            weightedQuickUnionUF.union(index, index + 1);
+        if (col < scale && isOpen(row, col + 1)) {
+            int neighbor = xyToIndex(row, col + 1);
+
+            currentStatus = updateStatus(neighbor, currentStatus);
+
+            wquuf.union(index, neighbor);
+        }
+
+        // Update status
+        int root = wquuf.find(index);
+        status[root] = (byte) (currentStatus | status[root]);
+
+        if (status[root] == 7) {
+            percolates = true;
         }
     }
 
     public boolean isOpen(int row, int col) {
-        int index = xyTo1D(row, col);
+        int index = xyToIndex(row, col);
+        int root = wquuf.find(index);
 
-        return openSites[index];
+        return status[root] >= 4;
     }
 
     public boolean isFull(int row, int col) {
-        int index = xyTo1D(row, col);
+        int index = xyToIndex(row, col);
+        int root = wquuf.find(index);
 
-        boolean isOpen = isOpen(row, col);
-        boolean isConnected = weightedQuickUnionUF.find(index) == weightedQuickUnionUF.find(virtualTopSite);
-
-        return isOpen && isConnected;
+        return status[root] >= 6;
     }
 
     public int numberOfOpenSites() {
-        return numOpenSites;
+        return numberOfOpenSites;
     }
 
     public boolean percolates() {
-        return this.percolates;
+        return percolates;
     }
 
-    private int xyTo1D(int row, int col) throws IndexOutOfBoundsException {
-        int index = (row - 1) * gridScale + col;
+    private int xyToIndex(int row, int col) throws IndexOutOfBoundsException {
+        int index = ((row - 1) * scale + col) - 1;
 
-        if (index < 1 || index > gridSize) {
+        if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Invalid index");
         }
 
         return index;
     }
 
-    public static void main(String[] args) {
-        Percolation percolation = new Percolation(3);
-
-        percolation.open(1,3);
-        percolation.open(2,3);
-        percolation.open(3,3);
-
-        percolation.percolates();
-
+    public int getSize() {
+        return size;
     }
 
+    private synchronized byte updateStatus(int site, byte currentStatus) {
+        int root = wquuf.find(site);
+        return (byte) (currentStatus | status[root]);
+    }
 }

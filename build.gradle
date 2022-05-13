@@ -14,9 +14,9 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 
     implementation 'com.googlecode.princeton-java-algorithms:algorithms:4.0.1'
-
 }
 
 test {
     useJUnitPlatform()
 }
+
